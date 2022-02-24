@@ -20,6 +20,13 @@ export default {
       myChart: '',
       provinceCode: 'zhejiang',
       provinceName: '浙江',
+      markerList: [
+        {value:10,name:'杭州萧山瓜沥沈天海蛇类养殖场',latitude: 30.206742,longitude: 120.423629},
+        {value:20,name:'杭州萧山鑫怡农业开发有限公司',latitude: 30.095659,longitude: 120.17343},
+        {value:30,name:'杭州长乔旅游投资集团股份有限公司',latitude: 30.143301,longitude: 120.221168},
+        {value:40,name:'杭州萧山珍禽养殖有限公司',latitude: 30.200539,longitude: 120.386077},
+        {value:50,name:'杭州萧山湘湖鸟语林科普有限公司',latitude: 30.143301,longitude: 120.221168}
+      ],
     };
   },
   mounted() {
@@ -41,42 +48,101 @@ export default {
       })
     },
     initEcharts(map) {
+      console.log("map",map)
       let option = {
         tooltip: {
           trigger: 'item',
           formatter: '{b}<br/>{c} (p / km2)'
         },
+        geo: {
+          map: map,
+          roam: true,//是否开启缩放和平移
+          zoom: 1.2,//视角缩放比例
+          label: {
+            normal: {
+              show: true,//是否显示省份名称
+              fontSize: '10',//字体大小
+              color: '#000'//字体颜色
+            },
+            emphasis: { //动态展示的样式
+              fontSize: '10',//字体大小
+              color: '#fff'//字体颜色
+            },
+          },
+          itemStyle: {
+            normal: {
+              borderColor: 'rgba(0, 0, 0, 0.2)',
+              areaColor: '#BBFFFF',//静态时各省份区域颜色
+            },
+            emphasis: {
+              areaColor: '#3c92cf',//鼠标选择区域颜色
+              shadowOffsetX: 0,
+              shadowOffsetY: 0,
+              shadowBlur: 20,
+              borderWidth: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+          }
+        },
         series: [
           {
-            name: "信息量",
-            type: "map",
-            mapType: map,
-            selectedMode: 'single',
-            showLegendSymbol: false,
-            visibility: 'off',
-            data: [
-              {name: '杭州市', value: 20057.34},
-              {name: '宁波市', value: 15477.48}
-            ],
-            label: {
-              show: true,
-              formatter: function (val) {
-                var area_content = '{a|' + val.name + '}' + '-' + '{b|' + val.value + '}';
-                return area_content.split("-").join("\n");
-              }, rich: {
-                a: {
-                  color: 'black'
+            type: 'effectScatter',
+            coordinateSystem: 'geo',
+            animation: false,//坐标点是否显示动画
+            // symbol:'pin',
+            data: this.markerList.map(function (itemOpt) {
+              return {
+                name: itemOpt.name,
+                value: [
+                  itemOpt.longitude,
+                  itemOpt.latitude,
+                  itemOpt.value //数量
+                ],
+                label: {
+                  emphasis: {
+                    position: 'right',
+                    show: false
+                  }
                 },
-                b: {
-                  color: 'blue',
-                  fontSize: 14,
+                itemStyle: {
+                  normal: {
+                    color: '#0394d9'
+                  }
                 }
-              }
-            }
+              };
+            }),
+            // name: "信息量",
+            // type: "map",
+            // mapType: map,
+            // selectedMode: 'single',
+            // showLegendSymbol: false,
+            // visibility: 'off',
+            // data: [
+            //   {name: '杭州市', value: 20057.34},
+            //   {name: '宁波市', value: 15477.48}
+            // ],
+            // symbolSize: function (val) {
+            //   console.log(val)
+            //   return 5;//描点的大小
+            // },
+            // label: {
+            //   show: true,
+            //   formatter: function (val) {
+            //     var area_content = '{a|' + val.name + '}' + '-' + '{b|' + val.value + '}';
+            //     return area_content.split("-").join("\n");
+            //   }, rich: {
+            //     a: {
+            //       color: 'black'
+            //     },
+            //     b: {
+            //       color: 'blue',
+            //       fontSize: 14,
+            //     }
+            //   }
+            // }
           }
         ]
       };
-
       this.myChart.setOption(option);
     },
     // 配置渲染map
@@ -113,6 +179,7 @@ export default {
       // 显示县级地图
       $.getJSON(`/map/city/${cName}.json`, data => {
         this.$echarts.registerMap(param, data);
+        console.log("param",param)
         this.initEcharts(param);
       })
     },
